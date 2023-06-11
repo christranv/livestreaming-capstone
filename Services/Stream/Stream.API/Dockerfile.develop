@@ -1,0 +1,14 @@
+FROM FROM mcr.microsoft.com/dotnet/aspnet:5.0-buster-slim AS base
+ARG BUILD_CONFIGURATION=Debug
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+EXPOSE 80
+
+WORKDIR /src
+COPY ["Services/Stream/Stream.API/Stream.API.csproj", "Services/Stream/Stream.API/"]
+RUN dotnet restore Services/Stream/Stream.API/Stream.API.csproj -nowarn:msb3202,nu1503
+COPY . .
+WORKDIR "/src/Services/Stream/Stream.API"
+RUN dotnet build  --no-restore -c $BUILD_CONFIGURATION
+
+ENTRYPOINT ["dotnet", "watch", "run", "--no-build", "--no-launch-profile", "-c", "$BUILD_CONFIGURATION", "--"]

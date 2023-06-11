@@ -1,0 +1,199 @@
+version: '3.4'
+
+services:
+
+  sqldata:
+    environment:
+      - MYSQL_ROOT_PASSWORD=Pass@word
+      - MYSQL_DATABASE=team5_service_identitydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - team5-sqldata:/var/lib/mysql
+
+  redisdata:
+    ports:
+      - "6379:6379"
+
+  #  rabbitmq:
+  #    ports:
+  #      - "15672:15672"
+  #      - "5672:5672"
+
+  #  grafana:
+  #    ports:
+  #      - "3000:3000"
+  #    volumes:
+  #      - ./MetricsMonitor/grafana/provisioning/:/etc/grafana/provisioning/
+  #
+  #  prom:
+  #    ports:
+  #      - "9090:9090"
+  #    volumes:
+  #      - team5-prom-data:/prometheus
+  #      - "./MetricsMonitor/prometheus.yml:/etc/prometheus/prometheus.yml"
+  #
+
+  team5client-spa:
+
+  identity-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_identitydb;Uid=root;Pwd=Pass@word}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - PORT=80
+      - PATH_BASE=/identity-api
+    ports:
+      - "2052:80"
+
+  topic-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_topicdb;Uid=root;Pwd=Pass@word}
+      - RedisConnectionString=${TEAM5_REDIS_DB:-redisdata}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - GRPC_PORT=81
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/topic-api
+    ports:
+      - "5102:80"
+      - "9102:81"
+
+  event-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_eventdb;Uid=root;Pwd=Pass@word}
+      - RedisConnectionString=${TEAM5_REDIS_DB:-redisdata}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - GRPC_PORT=81
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/event-api
+    ports:
+      - "5107:80"
+      - "9107:81"
+
+  payment-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_paymentdb;Uid=root;Pwd=Pass@word}
+      - RedisConnectionString=${TEAM5_REDIS_DB:-redisdata}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - GRPC_PORT=81
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/payment-api
+      - partnerCode=MOMO5RGX20191128
+      - accessKey=M8brj9K6E22vXoDB
+      - secretKey=nqQiVSgDMy809JoPF6OzP5OdBUB550Y4
+      - endPoint=https://test-payment.momo.vn/gw_payment/transactionProcessor
+      - returnUrl=${TEAM5_EXTERNAL_DNS_NAME_OR_IP}/payment
+      - notifyUrl=${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2053/payment-api/api/v1/MomoIpn
+    ports:
+      - "5109:80"
+      - "9109:81"
+
+  stream-srs:
+    volumes:
+      - ./Services/Stream/Stream.Srs/main.conf:/usr/local/srs/conf/main.conf
+      - ./Services/Stream/Stream.Srs/hosts:/etc/hosts
+    ports:
+      - "1935:1935"
+      - "7000:7000"
+      - "8880:8880"
+
+  stream-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_streamdb;Uid=root;Pwd=Pass@word}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - GRPC_PORT=81
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - SrsRtmpServerUrl=rtmp://${TEAM5_RTMP_DNS_NAME_OR_IP}/stream-srs
+      - SrsApiServerUrl=${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2053/stream-srs
+      - PATH_BASE=/stream-api
+    ports:
+      - "5103:80"
+      - "9103:81"
+
+  stream-signalrhub:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "5104:80"
+
+  notification-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - identityUrl=http://identity-api
+      - IdentityUrlExternal=http://${TEAM5_EXTERNAL_DNS_NAME_OR_IP}:2052
+      - ConnectionString=${TEAM5_SQLDATA_DB:-Server=sqldata;Database=team5_service_notificationdb;Uid=root;Pwd=Pass@word}
+      - EventBusConnection=${TEAM5_SERVICE_BUS:-rabbitmq}
+      - EventBusUserName=${TEAM5_SERVICE_BUS_USERNAME}
+      - EventBusPassword=${TEAM5_SERVICE_BUS_PASSWORD}
+      - PORT=80
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "5108:80"
+
+  #  web-status:
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=Development
+  #      - ASPNETCORE_URLS=http://0.0.0.0:80
+  #      - HealthChecksUI__HealthChecks__0__Name=Identity HTTP Check
+  #      - HealthChecksUI__HealthChecks__1__Name=Topic HTTP Check
+  #      - HealthChecksUI__HealthChecks__0__Uri=http://identity-api/hc
+  #      - HealthChecksUI__HealthChecks__1__Uri=http://topic-api/hc
+  #      - OrchestratorType=${ORCHESTRATOR_TYPE}
+  #    ports:
+  #      - "5110:80"
+
+  team5apigw:
+    volumes:
+      - ./ApiGateways/Envoy/config:/etc/envoy
+    ports:
+      - "443:443"
+      - "2053:2053"
+      - "12052:8001"
+
+volumes:
+  team5-sqldata:
+    external: false
+#  team5-prom-data:
+#    external: false
+

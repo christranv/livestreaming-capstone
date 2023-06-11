@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Identity.API": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

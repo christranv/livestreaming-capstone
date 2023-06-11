@@ -1,0 +1,17 @@
+﻿global:
+    scrape_interval:     5s
+    evaluation_interval: 5s
+  
+alerting:
+    alertmanagers:
+    - static_configs:
+      - targets:
+  
+rule_files:
+  
+scrape_configs:
+    - job_name: 'web-status'
+
+      metrics_path: /metrics-text
+      static_configs:
+      - targets: ['web-status:80']

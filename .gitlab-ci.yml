@@ -1,0 +1,31 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - develop
+
+stage-dev:
+  stage: develop
+  tags:
+    - develop
+  only:
+    - master
+  script:
+    - docker login -u gitlab+deploy-token-398047 -p jtJZgUu3ynZMTwLrRhVx registry.gitlab.com/team5capstonegroup/team5-backend-dotnet-5
+    - docker login -u gitlab+deploy-token-398047 -p jtJZgUu3ynZMTwLrRhVx registry.gitlab.com/team5capstonegroup/team5-frontend-react
+
+      ### START uncomment to deploy
+#    - ./buildAndDeployToGitlabRegistry.sh
+#    - docker-compose pull
+#    - docker-compose up -d
+#    - docker image prune
+    ### END uncomment to deploy
+    #    - docker restart team5-backend-dotnet-5_payment-api_1
+    #    - docker restart team5-backend-dotnet-5_identity-api_1
+    #    - docker restart team5-backend-dotnet-5_event-api_1
+#    - docker restart team5-backend-dotnet-5_topic-api_1
+#    - docker restart team5-backend-dotnet-5_stream-srs_1
+    #    - docker restart team5-backend-dotnet-5_team5apigw_1
+    - docker-compose restart

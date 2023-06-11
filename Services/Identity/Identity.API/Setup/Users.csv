@@ -1,0 +1,3 @@
+Email,Name,UserName,NormalizedEmail,NormalizedUserName,Password
+test@microsoft.com,DemoUser,test@microsoft.com,TEST@MICROSOFT.COM,TEST@MICROSOFT.COM,Pass@word1
+admin@team5.com,AdminT5,admin@team5.com,ADMIN@TEAM5.COM,ADMIN@TEAM5.COM,Pass@word1

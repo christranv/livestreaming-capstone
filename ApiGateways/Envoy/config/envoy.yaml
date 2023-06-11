@@ -1,0 +1,295 @@
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 8001
+static_resources:
+  listeners:
+    - address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 443
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              config:
+                codec_type: auto
+                stat_prefix: ingress_http
+                route_config:
+                  name: team5_frontend_route
+                  virtual_hosts:
+                    - name: team5_frontend
+                      domains:
+                        - "*"
+                      routes:
+                        - name: "team5client-spa"
+                          match:
+                            prefix: "/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: team5client-spa
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config: { }
+                access_log:
+                  - name: envoy.file_access_log
+                    filter:
+                      not_health_check_filter: { }
+                    config:
+                      json_format:
+                        time: "%START_TIME%"
+                        protocol: "%PROTOCOL%"
+                        duration: "%DURATION%"
+                        request_method: "%REQ(:METHOD)%"
+                        request_host: "%REQ(HOST)%"
+                        path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                        response_flags: "%RESPONSE_FLAGS%"
+                        route_name: "%ROUTE_NAME%"
+                        upstream_host: "%UPSTREAM_HOST%"
+                        upstream_cluster: "%UPSTREAM_CLUSTER%"
+                        upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      path: "/tmp/access-fe.log"
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.api.v2.auth.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  certificate_chain: { "filename": "/etc/envoy/certs/fullchain.pem" }
+                  private_key: { "filename": "/etc/envoy/certs/privkey.pem" }
+    - address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 2053
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              config:
+                codec_type: auto
+                stat_prefix: ingress_http
+                route_config:
+                  name: team5_backend_route
+                  virtual_hosts:
+                    - name: team5_backend
+                      domains:
+                        - "*"
+                      cors:
+                        allow_origin_string_match:
+                          - safe_regex:
+                              google_re2: { }
+                              regex: \*
+                        allow_credentials: true
+                        allow_methods: GET, PUT, DELETE, POST, PATCH, OPTIONS
+                        allow_headers: Authorization,Content-Type,correlationid,Access-Control-Allow-Origin,x-requested-with,x-signalr-user-agent
+                        filter_enabled:
+                          default_value:
+                            numerator: 100
+                            denominator: HUNDRED
+                          runtime_key: cors.www.enabled
+                        shadow_enabled:
+                          default_value:
+                            numerator: 0
+                            denominator: HUNDRED
+                          runtime_key: cors.www.shadow_enabled
+                      routes:
+                        - name: "identity-connect"
+                          match:
+                            prefix: "/connect/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: identity
+                        - name: "identity-api"
+                          match:
+                            prefix: "/api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: identity
+                        - name: "t-short"
+                          match:
+                            prefix: "/t/"
+                          route:
+                            auto_host_rewrite: true
+                            prefix_rewrite: "/topic-api/"
+                            cluster: topic
+                        - name: "t-long"
+                          match:
+                            prefix: "/topic-api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: topic
+                        - name: "e-short"
+                          match:
+                            prefix: "/e/"
+                          route:
+                            auto_host_rewrite: true
+                            prefix_rewrite: "/event-api/"
+                            cluster: event
+                        - name: "e-long"
+                          match:
+                            prefix: "/event-api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: event
+                        - name: "p-short"
+                          match:
+                            prefix: "/p/"
+                          route:
+                            auto_host_rewrite: true
+                            prefix_rewrite: "/payment-api/"
+                            cluster: payment
+                        - name: "p-long"
+                          match:
+                            prefix: "/payment-api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: payment
+                        - name: "s-short"
+                          match:
+                            prefix: "/s/"
+                          route:
+                            auto_host_rewrite: true
+                            prefix_rewrite: "/stream-api/"
+                            cluster: stream-api
+                        - name: "s-long"
+                          match:
+                            prefix: "/stream-api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: stream-api
+                        - name: "srs-long"
+                          match:
+                            prefix: "/stream-srs"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: stream-srs-api
+                        - name: "h-long"
+                          match:
+                            prefix: "/hubs/stream"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: stream-hub
+                            timeout: 300s
+                            upgrade_configs:
+                              upgrade_type: "websocket"
+                              enabled: true
+                        - name: "notification-api"
+                          match:
+                            prefix: "/notification-api/"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: notification-api
+                        - name: "notification-hub"
+                          match:
+                            prefix: "/hubs/notification"
+                          route:
+                            auto_host_rewrite: true
+                            cluster: notification-api
+                            timeout: 300s
+                            upgrade_configs:
+                              upgrade_type: "websocket"
+                              enabled: true
+                http_filters:
+                  - name: envoy.cors
+                    typed_config: { }
+                  - name: envoy.filters.http.router
+                    typed_config: { }
+                access_log:
+                  - name: envoy.file_access_log
+                    filter:
+                      not_health_check_filter: { }
+                    config:
+                      json_format:
+                        time: "%START_TIME%"
+                        protocol: "%PROTOCOL%"
+                        duration: "%DURATION%"
+                        request_method: "%REQ(:METHOD)%"
+                        request_host: "%REQ(HOST)%"
+                        path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                        response_flags: "%RESPONSE_FLAGS%"
+                        route_name: "%ROUTE_NAME%"
+                        upstream_host: "%UPSTREAM_HOST%"
+                        upstream_cluster: "%UPSTREAM_CLUSTER%"
+                        upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      path: "/tmp/access-be.log"
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.api.v2.auth.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  certificate_chain: { "filename": "/etc/envoy/certs/fullchain.pem" }
+                  private_key: { "filename": "/etc/envoy/certs/privkey.pem" }
+  clusters:
+    - name: team5client-spa
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: team5client-spa
+            port_value: 80
+    - name: identity
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: identity-api
+            port_value: 80
+    - name: topic
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: topic-api
+            port_value: 80
+    - name: event
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: event-api
+            port_value: 80
+    - name: payment
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: payment-api
+            port_value: 80
+    - name: stream-api
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: stream-api
+            port_value: 80
+    - name: stream-srs-api
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: stream-srs
+            port_value: 8880
+    - name: stream-hub
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: stream-signalrhub
+            port_value: 80
+    - name: notification-api
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: notification-api
+            port_value: 80

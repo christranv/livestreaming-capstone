@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <UserSecretsId>aspnet-eShopOnContainers.Identity-90487118-103c-4ff0-b9da-e5e26f7ab0c5</UserSecretsId>
+        <DockerComposeProjectPath>..\..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
+        <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
+        <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+        <LangVersion>9</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(RunConfiguration)' == 'Team5.Identity' " />
+    <ItemGroup>
+        <Content Include="Setup\**\*;">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="5.0.1" />
+
+        <PackageReference Include="IdentityServer4" Version="4.1.1" />
+        <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.1" />
+        <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.1" />
+        <PackageReference Include="IdentityServer4.EntityFramework.Storage" Version="4.1.1" />
+        <PackageReference Include="IdentityServer4.Storage" Version="4.1.1" />
+        
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.0.96" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.2" />
+        <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="3.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.3" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="1.0.2" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Certificate/idsrv3test.pfx" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="Setup\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Extensions\" />
+        <Folder Include="ExtensionGrant\" />
+        <Folder Include="Infrastructure\Migrations\ConfigurationDb" />
+        <Folder Include="Providers\" />
+        <Folder Include="Helpers\" />
+        <Folder Include="Providers\Interfaces\" />
+        <Folder Include="Repositories\" />
+        <Folder Include="Repositories\Interfaces\" />
+        <Folder Include="Services\Interfaces\" />
+        <Folder Include="wwwroot" />
+        <Folder Include="wwwroot\images\banner" />
+        <Folder Include="wwwroot\images\profile" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\brand_dark.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\brand_dark.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\brand_dark.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\brand_dark.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\brand.PNG" />
+        <Content Remove="wwwroot\images\my_orders.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\brand_dark.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\main_footer_text.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+        <Content Remove="wwwroot\images\logout.PNG" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.csproj" />
+    </ItemGroup>
+</Project>

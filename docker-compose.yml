@@ -1,0 +1,107 @@
+version: '3.4'
+
+services:
+
+  sqldata:
+    image: mysql:8.0
+
+  redisdata:
+    image: redis:alpine
+
+  #  grafana:
+  #    image: "grafana/grafana"
+  #
+  #  prom:
+  #    image: "prom/prometheus"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    
+  team5client-spa:
+    image: registry.gitlab.com/team5capstonegroup/team5-frontend-react:latest
+
+  identity-api:
+    image: ${REGISTRY:-team5}/identity.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Identity/Identity.API/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+
+  topic-api:
+    image: ${REGISTRY:-team5}/topic.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Topic/Topic.API/Dockerfile
+    depends_on:
+      - sqldata
+      - redisdata
+      - rabbitmq
+      - identity-api
+
+  event-api:
+    image: ${REGISTRY:-team5}/event.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Event/Event.API/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+      - stream-api
+      - identity-api
+      
+  payment-api:
+    image: ${REGISTRY:-team5}/payment.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Payment/Payment.API/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+      - stream-api
+      - identity-api
+
+  stream-srs:
+    image: chuongtran1999dn/team5-srs:latest
+
+  stream-api:
+    image: ${REGISTRY:-team5}/stream.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Stream/Stream.API/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+      - identity-api
+
+  stream-signalrhub:
+    image: ${REGISTRY:-team5}/stream.signalrhub:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Stream/Stream.SignalrHub/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+      - identity-api
+      - stream-api
+
+  notification-api:
+    image: ${REGISTRY:-team5}/notification.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/Notification/Notification.API/Dockerfile
+    depends_on:
+      - sqldata
+      - rabbitmq
+      - identity-api
+
+  #  web-status:
+  #    image: ${REGISTRY:-team5}/web-status:${PLATFORM:-linux}-${TAG:-latest}
+  #    build:
+  #      context: .
+  #      dockerfile: WebApps/WebStatus/Dockerfile
+
+  team5apigw:
+    image: envoyproxy/envoy:v1.14.1
+

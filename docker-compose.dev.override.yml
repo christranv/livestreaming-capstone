@@ -1,0 +1,76 @@
+version: '3.4'
+
+services:
+
+  #  seq:
+  #    environment:
+  #      - ACCEPT_EULA=Y
+  #    ports:
+  #      - "5340:80"
+
+  sqldata:
+    environment:
+      - MYSQL_ROOT_PASSWORD=Pass@word
+      - MYSQL_DATABASE=team5_service_identitydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - team5-sqldata:/var/lib/mysql
+
+  redisdata:
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  #  grafana:
+  #    ports:
+  #      - "3000:3000"
+  #    volumes:
+  #      - ./MetricsMonitor/grafana/provisioning/:/etc/grafana/provisioning/
+  #
+  #  prom:
+  #    ports:
+  #      - "9090:9090"
+  #    volumes:
+  #      - team5-prom-data:/prometheus
+  #      - "./MetricsMonitor/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  stream-srs:
+    volumes:
+      - ./Services/Stream/Stream.Srs/main.dev.conf:/usr/local/srs/conf/main.conf
+      - ./Services/Stream/Stream.Srs/hosts:/etc/hosts
+    ports:
+      - "1935:1935"
+      - "7000:1985"
+      - "8880:8880"
+
+  #  web-status:
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=Development
+  #      - ASPNETCORE_URLS=http://0.0.0.0:80
+  #      - HealthChecksUI__HealthChecks__0__Name=Identity HTTP Check
+  #      - HealthChecksUI__HealthChecks__1__Name=Topic HTTP Check
+  #      - HealthChecksUI__HealthChecks__0__Uri=http://identity-api/hc
+  #      - HealthChecksUI__HealthChecks__1__Uri=http://topic-api/hc
+  #      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+  #      - OrchestratorType=${ORCHESTRATOR_TYPE}
+  #    ports:
+  #      - "5110:80"
+  
+  team5apigw:
+    volumes:
+      - ./ApiGateways/Envoy/config/envoy.dev.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "2082:80"
+      - "12052:8001"
+
+volumes:
+  team5-sqldata:
+    external: false
+#  team5-prom-data:
+#    external: false
+
